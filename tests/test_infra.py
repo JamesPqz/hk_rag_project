@@ -1,0 +1,23 @@
+from sqlalchemy import text
+
+from src.cache.redis_client import redis_client
+from src.db.session import SessionLocal, init_db
+
+# 创建表
+init_db()
+print("数据库表创建成功")
+
+try:
+    db = SessionLocal()
+    db.execute(text('select 1'))
+    print('success')
+except Exception as e:
+    print(f'fail-{e}')
+
+
+try:
+    redis_client.set('test', 'ok', ttl = 10)
+    rlt = redis_client.get('text')
+    print('success')
+except Exception as e:
+    print(f'fail-{e}')
