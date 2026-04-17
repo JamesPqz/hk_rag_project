@@ -1,11 +1,11 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from src.config.setting import setting
+from utils.config_handler import postgresql_config as cfg
 from src.db.schema import Base
 
-engine = create_engine(f"postgresql://{setting.PG_USER}:{setting.PG_PASSWORD}@{setting.PG_HOST}"
-                       f":{setting.PG_PORT}/{setting.PG_DATABASE}")
+engine = create_engine(f"postgresql://{cfg['PG_USER']}:{cfg['PG_PASSWORD']}@{cfg['PG_HOST']}"
+                       f":{cfg['PG_PORT']}/{cfg['PG_DATABASE']}")
 
 SessionLocal = sessionmaker(bind=engine)
 

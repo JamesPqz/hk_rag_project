@@ -1,0 +1,2 @@
+REDIS_HOST: local_host
+REDIS_PORT: 6379

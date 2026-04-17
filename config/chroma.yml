@@ -1,0 +1,12 @@
+collection_name: agent
+chrome_db_dir: data/chroma_db
+data_path: data/raw
+md5_hex_store: data/chroma_db/md5.txt
+allow_types: ['txt', 'pdf', 'csv', 'tsv']
+
+chunk_size: 500
+chunk_overlap: 50
+top_k: 4
+similarity_threshold: 0.7
+separators: ['\n\n', '\n', '.', ',', '?', '!', '，', '。', '？', '！', ' ', '']
+
