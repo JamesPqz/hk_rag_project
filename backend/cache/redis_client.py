@@ -3,13 +3,13 @@ import json
 from typing import Optional, Any
 import redis
 
-from utils.config_handler import redis_config as cfg
+from backend.utils.config_handler import redis_config as cfg
 
 class RedisClient:
     def __init__(self):
         self.client = redis.Redis(
-            host= cfg['REDIS_HOST'],
-            port= cfg['REDIS_PORT'],
+            host= cfg['redis_host'],
+            port= cfg['redis_port'],
             decode_responses= True
         )
 

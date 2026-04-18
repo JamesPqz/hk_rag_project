@@ -1,20 +1,16 @@
-import logging
-import os
 from typing import List, Optional, Tuple
 
 from langchain_community.vectorstores import Chroma
 from langchain_core.documents import Document
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from src.models.factory import embedding_model
+from backend.models.factory import embedding_model
 
-from utils.config_handler import chroma_config as cfg
-from utils.file_handler import list_dir_with_allowed_type, get_file_md5_hex, get_file_docs
-from utils.md5_handler import check_md5_hex, save_md5
-from utils.path_tool import get_abs_path
+from backend.utils.config_handler import chroma_config as cfg
+from backend.utils.file_handler import list_dir_with_allowed_type, get_file_md5_hex
+from backend.utils.md5_handler import check_md5_hex, save_md5
+from backend.utils.path_tool import get_abs_path
 
-logger = logging.getLogger(__name__)
+from backend.utils.logger_handler import logger
 
 class VectorStore:
     def __init__(self, persist_dir:Optional[str] = None):
@@ -98,9 +94,8 @@ class VectorStore:
     #     logger.info(f"add {len(documents)} documents")
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
 
-    from src.loaders.document_loader import DocumentLoader, doc_loader
+    from backend.loaders.document_loader import doc_loader
 
     # loader = DocumentLoader()
     # chunks = loader.process('../../data/raw/test_doc.txt')

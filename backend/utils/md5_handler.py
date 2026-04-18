@@ -1,7 +1,7 @@
 import os.path
 
-from utils.path_tool import get_abs_path
-from utils.config_handler import chroma_config as cfg
+from backend.utils.path_tool import get_abs_path
+from backend.utils.config_handler import chroma_config as cfg
 
 def check_md5_hex(md5_for_check:str):
     md5_path = get_abs_path(cfg['md5_hex_store'])

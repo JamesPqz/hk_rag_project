@@ -1,10 +1,10 @@
 import os
 import hashlib
-from utils.logger_handler import logger
+from backend.utils.logger_handler import logger
 from langchain_core.documents import Document
-from langchain_community.document_loaders import PyPDFLoader, TextLoader, CSVLoader
+from langchain_community.document_loaders import PyPDFLoader, TextLoader, CSVLoader, UnstructuredMarkdownLoader
 
-from utils.path_tool import get_abs_path
+from backend.utils.path_tool import get_abs_path
 
 def get_file_md5_hex(file_path:str):
     if not os.path.exists(file_path):
@@ -50,6 +50,9 @@ def load_txt(file_path:str) -> list[Document]:
 def load_csv(file_path:str) -> list[Document]:
     return CSVLoader(file_path, encoding='utf-8').load()
 
+def load_md(file_path:str) -> list[Document]:
+    return UnstructuredMarkdownLoader(file_path).load()
+
 def get_file_docs(path:str):
     if path.endswith('.txt'):
         return load_txt(path)
@@ -57,10 +60,12 @@ def get_file_docs(path:str):
         return load_pdf(path)
     if path.endswith('.csv') or path.endswith('.tsv'):
         return load_csv(path)
+    if path.endswith('.md') or path.endswith('.markdown'):
+        return load_md(path)
     return []
 
 if __name__ == '__main__':
-    from utils.config_handler import chroma_config as cfg
+    from backend.utils.config_handler import chroma_config as cfg
     docs = list_dir_with_allowed_type(
         get_abs_path(cfg['data_path']),
         tuple(cfg['allow_types'])

@@ -6,7 +6,7 @@ from langchain_community.embeddings import DashScopeEmbeddings
 from langchain_core.embeddings import Embeddings
 from langchain_core.language_models import BaseChatModel
 
-from utils.config_handler import rag_config
+from backend.utils.config_handler import rag_config
 
 class BaseModelFactory(ABC):
     @abstractmethod

@@ -2,12 +2,11 @@ import logging
 from pathlib import Path
 from typing import List
 
-from langchain_community.document_loaders import PyPDFLoader, TextLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-import utils.config_handler as cfg
-from utils import file_handler
+import backend.utils.config_handler as cfg
+from backend.utils import file_handler
 
 logger = logging.getLogger(__name__)
 

@@ -1,7 +1,7 @@
 from sqlalchemy import text
 
-from src.cache.redis_client import redis_client
-from src.db.session import SessionLocal, init_db
+from backend.cache.redis_client import redis_client
+from backend.db.session import SessionLocal, init_db
 
 # 创建表
 init_db()
@@ -17,7 +17,7 @@ except Exception as e:
 
 try:
     redis_client.set('test', 'ok', ttl = 10)
-    rlt = redis_client.get('text')
+    rlt = redis_client.get('test')
     print('success')
 except Exception as e:
     print(f'fail-{e}')

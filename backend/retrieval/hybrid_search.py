@@ -1,15 +1,13 @@
-import logging
 from typing import List, Tuple
 import jieba
 from rank_bm25 import BM25Okapi
 
 from langchain_core.documents import Document
 
-from src.loaders.document_loader import doc_loader
-from src.retrieval.vector_store import VectorStore
-from utils.config_handler import chroma_config as cfg
+from backend.retrieval.vector_store import VectorStore
+from backend.utils.config_handler import chroma_config as cfg
 
-logger = logging.getLogger(__name__)
+from backend.utils.logger_handler import logger
 
 class HybridSearch:
     def __init__(self, vector_store:VectorStore):
@@ -62,7 +60,6 @@ class HybridSearch:
         return rlt_docs
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
 
     vs = VectorStore()
 

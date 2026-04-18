@@ -1,5 +1,5 @@
 import yaml
-from utils.path_tool import get_abs_path
+from backend.utils.path_tool import get_abs_path
 
 # def load_rag_config(cfg_path = get_abs_path('config/rag.yml'), encoding = 'utf-8'):
 #     with open(cfg_path, encoding=encoding) as f:
@@ -18,6 +18,7 @@ from utils.path_tool import get_abs_path
 #         return yaml.load(f, Loader=yaml.FullLoader)
 
 def load_config(cfg_path:str, encoding='utf-8'):
+    # print(get_abs_path(cfg_path))
     with open(get_abs_path(cfg_path), encoding=encoding) as f:
         return yaml.load(f, Loader=yaml.FullLoader)
 
@@ -29,4 +30,4 @@ postgresql_config = load_config('config/postgresql.yml')
 redis_config = load_config('config/redis.yml')
 
 if __name__ == '__main__':
-    print(chroma_config['CHUNK_SIZE'])
+    print(postgresql_config['pg_user'])
