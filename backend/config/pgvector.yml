@@ -1,0 +1,12 @@
+pg_host: localhost
+pg_port: 5432
+pg_database: rag_db
+pg_user: postgres
+pg_password: postgres
+
+table_name: documents
+dimension: 1536
+index_type: ivfflat  # ivfflat 或 hnsw
+lists: 100
+
+embedding_model: text-embedding-ada-002

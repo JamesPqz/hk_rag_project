@@ -30,7 +30,7 @@ class Reranker:
 
 if __name__ == '__main__':
 
-    from backend.retrieval.vector_store import VectorStore
+    from backend.retrieval.chroma_store import VectorStore
     from backend.retrieval.hybrid_search import HybridSearch
 
     vs = VectorStore()

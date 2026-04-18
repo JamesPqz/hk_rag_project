@@ -26,8 +26,9 @@ rag_config = load_config('config/rag.yml')
 chroma_config = load_config('config/chroma.yml')
 prompts_config = load_config('config/prompts.yml')
 agent_config = load_config('config/agent.yml')
-postgresql_config = load_config('config/postgresql.yml')
+postgresql_config = load_config('config/pgvector.yml')
 redis_config = load_config('config/redis.yml')
+vector_config = load_config('config/vector.yml')
 
 if __name__ == '__main__':
     print(postgresql_config['pg_user'])

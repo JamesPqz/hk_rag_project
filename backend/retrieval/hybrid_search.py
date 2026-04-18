@@ -4,7 +4,7 @@ from rank_bm25 import BM25Okapi
 
 from langchain_core.documents import Document
 
-from backend.retrieval.vector_store import VectorStore
+from backend.retrieval.chroma_store import VectorStore
 from backend.utils.config_handler import chroma_config as cfg
 
 from backend.utils.logger_handler import logger
