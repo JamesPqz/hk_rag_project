@@ -1,4 +1,4 @@
-import logging
+from backend.utils.logger_handler import logger
 from pathlib import Path
 from typing import List
 
@@ -7,8 +7,6 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 import backend.utils.config_handler as cfg
 from backend.utils import file_handler
-
-logger = logging.getLogger(__name__)
 
 class DocumentLoader:
     def __init__(self):
@@ -39,7 +37,6 @@ class DocumentLoader:
 doc_loader = DocumentLoader()
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
     loader = DocumentLoader()
 
     chunks = loader.process('../../data/raw/test_doc.txt')

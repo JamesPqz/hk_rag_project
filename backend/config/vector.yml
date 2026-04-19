@@ -1,4 +1,4 @@
-active: chromadb  # 或 pgvector
+active: pgvector  # 或 pgvector
 
 chromadb:
   config_path: config/chroma.yml

@@ -1,7 +1,10 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, DateTime, JSON, Text
+from sqlalchemy import Column, Integer, String, DateTime, JSON, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
+from pgvector.sqlalchemy import Vector
+
+from backend.utils.config_handler import postgresql_config
 
 Base = declarative_base()
 
@@ -38,3 +41,12 @@ class UserFeedback(Base):
     comment = Column(Text)
     created_at = Column(DateTime, default=datetime.now())
 
+class DocumentVector(Base):
+    __tablename__ = 'document_vectors'
+
+
+    id = Column(Integer, primary_key=True)
+    # document_id = Column(Integer, ForeignKey("documents.id"))
+    content = Column(String, nullable=False)
+    doc_metadata = Column(JSON)
+    embedding = Column(Vector(postgresql_config['dimension']))

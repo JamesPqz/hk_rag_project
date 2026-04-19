@@ -1,2 +1,2 @@
-redis_host: local_host
+redis_host: localhost
 redis_port: 6379

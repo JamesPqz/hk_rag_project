@@ -9,4 +9,6 @@ dimension: 1536
 index_type: ivfflat  # ivfflat 或 hnsw
 lists: 100
 
+top_k: 4
 embedding_model: text-embedding-ada-002
+sql_path: config/sql/pgvector_hybrid.sql

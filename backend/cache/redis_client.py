@@ -24,6 +24,9 @@ class RedisClient:
         for key in self.client.scan_iter(pattern):
             self.client.delete(key)
 
+    def delete(self, key: str):
+        self.client.delete(key)
+
     def cache_qa(self, question:str, answer: str):
         key = f"qa:{hashlib.md5(question.encode()).hexdigest()}"
         self.set(key, answer, ttl=7200)
