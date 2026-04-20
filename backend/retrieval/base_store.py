@@ -3,6 +3,9 @@ from typing import List, Tuple, Optional
 
 from langchain_core.documents import Document
 
+from backend.retrieval.reranker import Reranker
+
+
 class BaseVectorStore(ABC):
     def __init__(self, cfg:dict):
         self.cfg = cfg
@@ -36,3 +39,7 @@ class BaseVectorStore(ABC):
     @abstractmethod
     def delete(self, ids: List[str]):
         pass
+
+    def rerank(self, query:str, docs: List[Tuple[Document, float]], k: int) -> List[Tuple[Document, float]]:
+        reranker = Reranker()
+        return reranker.rerank(query, docs, k)

@@ -66,7 +66,7 @@ class PgVectorStore(BaseVectorStore):
     def _search_impl(self, query: str, k: int, with_score: bool) -> List[Tuple[Document, float]]:
         query_embedding = embedding_model.embed_query(query)
 
-        # ✅ 核心修复：把列表转成 vector 字符串，安全拼接
+        # 把列表转成 vector 字符串，安全拼接
         vec_str = json.dumps(query_embedding)
         vector_literal = f"'{vec_str}'::vector"
 
@@ -83,21 +83,31 @@ class PgVectorStore(BaseVectorStore):
 
     def hybrid_search(self, query: str, k: Optional[int] = None, alpha: float = 0.5) -> List[Tuple[Document, float]]:
         k = k or self.top_k
-        embedding = embedding_model.embed_query(query)
+        query_embedding = embedding_model.embed_query(query)
+        vec_str = json.dumps(query_embedding)
+        vector_literal = f"'{vec_str}'::vector"
 
-        try:
-            with SessionLocal() as session:
-                with open(postgresql_config['sql_path'], 'r') as f:
-                    template = f.read()
-                    sql = text(template.format(table_name=self.table.__tablename__))
-                    results = session.execute(sql, {
-                        "embedding": embedding,
-                        "query": query,
-                        "k": k,
-                        "alpha": alpha
-                    }).fetchall()
-                    logger.info(f"hybrid search by pgvector success.length:{len(results)}")
-                    return [(Document(page_content=row[0], metadata=row[1]), row[2]) for row in results]
-        except Exception as e:
-            logger.error(f"hybrid search fail.{str(e)}")
-            raise
+        with SessionLocal() as session:
+            sql = text(f"""
+                WITH vector_scores AS (
+                    SELECT id, content, doc_metadata, 
+                           1 - (embedding <=> {vector_literal}) as vector_score
+                    FROM document_vectors
+                    ORDER BY embedding <=> {vector_literal}
+                    LIMIT {k * 2}
+                ),
+                keyword_scores AS (
+                    SELECT id, 
+                           ts_rank(to_tsvector('english', content), plainto_tsquery('english', :query)) as keyword_score
+                    FROM document_vectors
+                    WHERE to_tsvector('english', content) @@ plainto_tsquery('english', :query)
+                )
+                SELECT v.content, v.doc_metadata, 
+                       (:alpha * v.vector_score + (1 - :alpha) * COALESCE(k.keyword_score, 0)) as combined_score
+                FROM vector_scores v
+                LEFT JOIN keyword_scores k ON v.id = k.id
+                ORDER BY combined_score DESC
+                LIMIT :k
+            """)
+            results = session.execute(sql, {"query": query, "k": k, "alpha": alpha}).fetchall()
+            return [(Document(page_content=row[0], metadata=row[1]), row[2]) for row in results]

@@ -1,7 +1,10 @@
-active: pgvector  # 或 pgvector
+active: chromadb  # 或 pgvector
 
 chromadb:
   config_path: config/chroma.yml
 
 pgvector:
   config_path: config/pgvector.yml
+
+hybrid:
+  alpha: 0.6

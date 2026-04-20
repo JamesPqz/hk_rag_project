@@ -7,7 +7,7 @@ from backend.models.factory import embedding_model
 from backend.loaders.document_loader import doc_loader
 from backend.retrieval.base_store import BaseVectorStore
 from backend.retrieval.hybrid_search import HybridSearch
-from backend.utils.config_handler import chroma_config as cfg, chroma_config
+from backend.utils.config_handler import chroma_config as cfg, chroma_config, vector_config
 from backend.utils.file_handler import list_dir_with_allowed_type, get_file_md5_hex
 from backend.utils.md5_handler import check_md5_hex, save_md5
 from backend.utils.path_tool import get_abs_path
@@ -29,11 +29,11 @@ class ChromaVectorStore(BaseVectorStore):
         rlt = self.vector_store.similarity_search(query,k)
         return [(doc, 1.0) for doc in rlt]
 
-    def hybrid_search(self, query: str, k: Optional[int] = None, alpha: float = 0.5) -> List[Tuple[Document, float]]:
+    def hybrid_search(self, query: str, k: Optional[int] = None, alpha: float = vector_config['hybrid']['alpha']) -> List[Tuple[Document, float]]:
         """Chroma 的混合检索实现"""
-        if not self.hybrid_search:
+        if not self.hybrid_searcher:
             return self.similar_search_with_score(query, k)
-        return self.hybrid_search.search(query, k, alpha)
+        return self.hybrid_searcher.search(query, k, alpha)
 
     def load(self) -> Chroma:
         self.vector_store = Chroma(
@@ -76,15 +76,15 @@ class ChromaVectorStore(BaseVectorStore):
     def get_retriever(self):
         return self.vector_store.as_retriever(search_kwargs=cfg['top_k'])
 
-    def similarity_search(self, query:str, k:int = cfg['top_k']) -> List[Document]:
-        # if not self.vector_store:
-        #     self.load()
-        return self.vector_store.similarity_search(query, k)
-
-    def similar_search_with_score(self, query:str, k:int = cfg['top_k']) -> List[Tuple[Document,float]]:
-        # if not self.vector_store:
-        #     self.load()
-        return self.vector_store.similarity_search_with_score(query,k)
+    # def similarity_search(self, query:str, k:int = cfg['top_k']) -> List[Document]:
+    #     # if not self.vector_store:
+    #     #     self.load()
+    #     return self.vector_store.similarity_search(query, k)
+    #
+    # def similar_search_with_score(self, query:str, k:int = cfg['top_k']) -> List[Tuple[Document,float]]:
+    #     # if not self.vector_store:
+    #     #     self.load()
+    #     return self.vector_store.similarity_search_with_score(query,k)
 
     def add_documents(self, documents:List[Document]):
         self.vector_store.add_documents(documents)

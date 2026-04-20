@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from backend.retrieval.reranker import Reranker
 from backend.retrieval.vector_factory import get_vector_store
 from backend.services.conversation_service import ConversationService
 from backend.services.llm_service import LLM_Service
@@ -23,7 +24,10 @@ class Answer(BaseModel):
 
 def _get_context_and_sources(query:str , k:int):
     vs = get_vector_store()
-    result = vs.similar_search_with_score(query, k)
+    result = vs.hybrid_search(query, k)
+
+    reranker = Reranker()
+    result = reranker.rerank(query, result, k)
 
     sources = list(set([doc.metadata.get("source", "unknown") for doc, _ in result]))
     context = '\n'.join([doc.page_content for doc,_ in result])

@@ -18,7 +18,6 @@ class Reranker:
             return []
 
         pairs = [[query, doc.page_content] for doc,_ in docs]
-
         scores = self.model.predict(pairs)
 
         reranker = [(doc, float(score)) for (doc, _), score in zip(docs, scores)]

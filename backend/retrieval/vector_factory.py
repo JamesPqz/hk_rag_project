@@ -9,4 +9,5 @@ def get_vector_store():
     if active == 'pgvector':
         from backend.retrieval.pg_store import PgVectorStore
         return PgVectorStore()
+
     raise ValueError(f"unknown vector store type:{active}")
