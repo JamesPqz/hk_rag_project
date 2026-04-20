@@ -1,5 +1,6 @@
 from typing import List, Tuple
 
+import torch
 from langchain_core.documents import Document
 from sentence_transformers import CrossEncoder
 from backend.utils.config_handler import chroma_config as cfg
@@ -8,9 +9,14 @@ from backend.utils.logger_handler import logger
 
 class Reranker:
     def __init__(self):
+        if torch.backends.mps.is_available():
+            device = "mps"
+        else:
+            device = "cpu"
+
         self.model = CrossEncoder(
             'BAAI/bge-reranker-base',
-            device='mps'
+            device=device
         )
 
     def rerank(self, query:str, docs:List[Tuple[Document, float]], top_k:int = cfg['top_k']) -> List[Tuple[Document, float]]:

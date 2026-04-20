@@ -1,4 +1,4 @@
-pg_host: localhost
+pg_host: ${POSTGRES_HOST:-localhost}
 pg_port: 5432
 pg_database: rag_db
 pg_user: postgres

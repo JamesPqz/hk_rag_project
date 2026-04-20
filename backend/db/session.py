@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 from backend.utils.config_handler import postgresql_config as cfg
@@ -17,4 +17,9 @@ def get_db():
         db.close()
 
 def init_db():
+
+    with engine.connect() as conn:
+        # 激活 pgvector 插件
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector;"))
+        conn.commit()
     Base.metadata.create_all(bind=engine)

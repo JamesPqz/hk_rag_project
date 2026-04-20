@@ -8,7 +8,9 @@ from backend.retrieval.reranker import Reranker
 from backend.retrieval.vector_factory import get_vector_store
 from backend.services.conversation_service import ConversationService
 from backend.services.llm_service import LLM_Service
+from backend.services.query_cache import QueryCache
 from backend.utils.prompts_loader import load_sys_prompt
+from backend.utils.config_handler import chroma_config
 
 router = APIRouter(prefix='/chat', tags=['chat'])
 
@@ -28,9 +30,14 @@ def _get_context_and_sources(query:str , k:int):
 
     reranker = Reranker()
     result = reranker.rerank(query, result, k)
+    result = [(doc, score) for doc, score in result if score >= chroma_config['similarity_threshold']]
 
-    sources = list(set([doc.metadata.get("source", "unknown") for doc, _ in result]))
-    context = '\n'.join([doc.page_content for doc,_ in result])
+    if not result:
+        sources = []
+        context = "there's no relevant infos in library"
+    else:
+        sources = list(set([doc.metadata.get("source", "unknown") for doc, _ in result]))
+        context = '\n'.join([doc.page_content for doc,_ in result])
 
     return context, sources
 
@@ -40,7 +47,10 @@ def build_prompt(query:str, session_id: str ,k :int):
 
     history_msg = "chat history:\n" + "\n".join([f"'role': {his['role']}, 'content':{his['content']}" for his in history])
 
-    context, sources = _get_context_and_sources(query, k)
+    rewrite_prompt = f"把以下问题改写成更清晰的检索查询：{query}"
+    new_query = llm_service.generate(rewrite_prompt)
+
+    context, sources = _get_context_and_sources(new_query, k)
 
     prompt = load_sys_prompt()
 
@@ -52,10 +62,17 @@ def build_prompt(query:str, session_id: str ,k :int):
 async def ask(question:Question, session_id:str = 'default'):
     prompt, sources, conv_service = build_prompt(question.query, session_id, question.k)
 
+    cache = QueryCache.get(question.query)
+    if cache:
+        answer, sources = cache
+        return Answer(answer=answer, sources=sources)
+
     answer = llm_service.generate(prompt)
 
     conv_service.add_message('user', question.query)
     conv_service.add_message('assistant', answer)
+
+    QueryCache.set(question.query, answer, list(set(sources)))
 
     return Answer(
         answer=answer,
@@ -64,6 +81,17 @@ async def ask(question:Question, session_id:str = 'default'):
 
 @router.post('/ask/stream')
 async def ask_stream(question:Question, session_id:str = 'default'):
+    cache = QueryCache.get(question.query)
+    if cache:
+        answer, sources = cache
+        async def stream_from_cache():
+            full_answer = ""
+            for char in answer:
+                yield char
+
+        headers = {"X-Sources": ",".join(sources)}
+        return StreamingResponse(stream_from_cache(), media_type="text/plain", headers=headers)
+
     prompt, sources, conv_service = build_prompt(question.query, session_id, question.k)
 
     async def generate():
@@ -75,6 +103,7 @@ async def ask_stream(question:Question, session_id:str = 'default'):
         conv_service.add_message("user", question.query)
         conv_service.add_message("assistant", full_answer)
 
+        QueryCache.set(question.query, answer=full_answer, sources=sources)
 
     # 将 sources 放入响应头
     headers = {"X-Sources": ",".join(sources)}

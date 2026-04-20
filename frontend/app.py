@@ -1,3 +1,4 @@
+import os
 from time import sleep
 
 import requests
@@ -11,7 +12,12 @@ st.divider()
 
 with st.sidebar:
     st.header('configuration')
-    api_url = st.text_input('api address', value="http://localhost:8000")
+    # api_base = os.getenv("API_BASE_URL", "http://localhost/api")
+    if os.getenv("DOCKER_ENV"):
+        api_base = "http://nginx/api"
+    else:
+        api_base = "http://localhost:8000"
+    api_url = st.text_input('api address', value=api_base)
     session_id = st.text_input('session id', value='user123')
 
     st.header('document manager')
