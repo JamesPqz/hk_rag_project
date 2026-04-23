@@ -23,14 +23,26 @@ def load_sys_prompt() -> str:
     return _load_prompt('main_prompt_path', 'load_sys_prompt')
 
 
-def load_rag_prompt() -> str:
+def load_rag_summarize_prompt() -> str:
     return _load_prompt('rag_summarize_prompt_path', 'load_rag_prompt')
 
 
 def load_report_prompt() -> str:
     return _load_prompt('report_prompt_path', 'load_report_prompt')
 
+def load_intent_prompt() -> str:
+    return _load_prompt('intent_prompt_path', 'load_report_prompt')
+
+def load_react_system_prompt() -> str:
+    return _load_prompt('react_system_prompt_path', 'load_react_system_prompt')
+
+def load_boundaries() -> str:
+    return _load_prompt('boundaries_path', 'load_boundaries')
+
+def load_react_thought_prompt() -> str:
+    return _load_prompt('react_thought_prompt_path', 'load_react_thought_prompt')
+
 
 if __name__ == '__main__':
-    print(load_rag_prompt())
+    print(load_rag_summarize_prompt())
     print(load_report_prompt())

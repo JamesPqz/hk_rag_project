@@ -9,6 +9,7 @@ from backend.retrieval.vector_factory import get_vector_store
 from backend.services.conversation_service import ConversationService
 from backend.services.llm_service import LLM_Service
 from backend.services.query_cache import QueryCache
+from backend.services.retrieval_service import RetrievalService
 from backend.utils.prompts_loader import load_sys_prompt
 from backend.utils.config_handler import chroma_config
 
@@ -24,22 +25,22 @@ class Answer(BaseModel):
     answer:str
     sources:List[str]
 
-def _get_context_and_sources(query:str , k:int):
-    vs = get_vector_store()
-    result = vs.hybrid_search(query, k)
-
-    reranker = Reranker()
-    result = reranker.rerank(query, result, k)
-    result = [(doc, score) for doc, score in result if score >= chroma_config['similarity_threshold']]
-
-    if not result:
-        sources = []
-        context = "there's no relevant infos in library"
-    else:
-        sources = list(set([doc.metadata.get("source", "unknown") for doc, _ in result]))
-        context = '\n'.join([doc.page_content for doc,_ in result])
-
-    return context, sources
+# def _get_context_and_sources(query:str , k:int):
+#     vs = get_vector_store()
+#     result = vs.hybrid_search(query, k)
+#
+#     reranker = Reranker()
+#     result = reranker.rerank(query, result, k)
+#     result = [(doc, score) for doc, score in result if score >= chroma_config['similarity_threshold']]
+#
+#     if not result:
+#         sources = []
+#         context = "there's no relevant infos in library"
+#     else:
+#         sources = list(set([doc.metadata.get("source", "unknown") for doc, _ in result]))
+#         context = '\n'.join([doc.page_content for doc,_ in result])
+#
+#     return context, sources
 
 def build_prompt(query:str, session_id: str ,k :int):
     conv_service = ConversationService(session_id)
@@ -50,7 +51,7 @@ def build_prompt(query:str, session_id: str ,k :int):
     rewrite_prompt = f"把以下问题改写成更清晰的检索查询：{query}"
     new_query = llm_service.generate(rewrite_prompt)
 
-    context, sources = _get_context_and_sources(new_query, k)
+    context, sources = RetrievalService.retrieve(new_query, k)
 
     prompt = load_sys_prompt()
 

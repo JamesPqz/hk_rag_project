@@ -1,0 +1,24 @@
+# 思考模板
+
+## 意图识别阶段
+用户问题：{query}
+
+Thought 1: 分析用户意图...
+- 是否包含计算、时间、天气、股票等关键词？ → 可能是 TOOL
+- 是否询问知识库内容？ → 可能是 KNOWLEDGE
+- 是否只是问候或闲聊？ → 可能是 CHAT
+
+## 工具调用阶段（如果是 TOOL 或 KNOWLEDGE）
+Thought 2: 需要调用 {tool_name} 工具
+Action: {tool_name}
+Action Input: {input}
+
+Observation: {result}
+
+## 决策阶段
+Thought 3: 判断信息是否充足
+- 如果充足 → 进入 Final Answer
+- 如果不充足 → 继续调用下一个工具
+
+## 回答阶段
+Final Answer: {answer_with_citations}

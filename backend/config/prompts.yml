@@ -1,3 +1,7 @@
 main_prompt_path: config/prompts/main_prompt.txt
 rag_summarize_prompt_path: config/prompts/rag_summarize.txt
 report_prompt_path: config/prompts/report_prompt.txt
+intent_prompt_path: config/prompts/intent_prompt.txt
+react_system_prompt_path: config/prompts/react_system.txt
+boundaries_path: config/prompts/boundaries.txt
+react_thought_prompt_path: config/prompts/react_thought.txt

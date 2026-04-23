@@ -1,1 +1,23 @@
-external_data_path: data/GamingConsoleFAQs.csv
+# Agent 配置
+model: qwen-plus
+temperature: 0.3
+max_iterations: 5
+
+# 工具开关
+tools:
+  enabled:
+    - search_knowledge_base
+    - get_current_time
+    - calculate
+    - get_stock_price
+    - translate_text
+    - get_weather
+    - get_news
+    - generate_qrcode
+    - send_email
+  disabled: []
+
+# 邮件配置（敏感信息放环境变量）
+smtp:
+  host: ${SMTP_HOST:-smtp.gmail.com}
+  port: ${SMTP_PORT:-587}
