@@ -57,7 +57,8 @@ if prompt:
         try:
             resp = requests.post(
                 # f"{api_url}/chat/ask",
-                f"{api_url}/chat/ask/stream",
+                # f"{api_url}/chat/ask/stream",
+                f"{api_url}/agent/chat/stream",
                 params={"session_id": session_id},
                 json={"query": prompt, "k": 4},
                 stream=True

@@ -1,5 +1,7 @@
 from typing import Optional, Tuple, Callable, Any
 
+from langchain_core.messages import HumanMessage
+
 from backend.agent.react_agent import ReactAgent
 from backend.agent.tools import ToolsRegistry, get_all_tools
 from backend.agent.tools.middleware import  PromptSwitchMiddleware, \
@@ -47,7 +49,14 @@ def run_agent(query:str,session_id: str, context: Optional[dict] = None, is_stre
 
     if intent == 'CHAT':
         logger.info(f"intent:{intent}, llm response.")
-        return llm_service.generate(query)
+        if is_stream:
+            async def chat_stream():
+                async for chunk in llm_service.stream([HumanMessage(content=query)]):
+                    yield chunk.encode('utf-8')
+
+            return chat_stream(), []
+        else:
+            return llm_service.generate(query), []
 
     logger.info(f"intent:{intent}, run react agent.")
 

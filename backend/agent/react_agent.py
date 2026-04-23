@@ -1,3 +1,4 @@
+from time import sleep
 from typing import List, Optional, Any, Dict
 
 from instructor.providers.anthropic.utils import SystemMessage
@@ -127,18 +128,7 @@ class ReactAgent:
             messages.append(resp)
 
             if not resp.tool_calls:
-                async def generate():
-                    full_answer = ""
-                    async for chunk in llm_service.stream(messages):
-                        full_answer += chunk
-                        yield chunk.encode('utf-8')
-
-                    conv_service.add_message("user", query)
-                    conv_service.add_message("assistant", full_answer)
-
-                    QueryCache.set(query, answer=full_answer, sources=self.context.get('sources',[]))
-
-                return generate
+                break
 
             for tool_call in resp.tool_calls:
                 tool_name = tool_call['name']
@@ -149,8 +139,22 @@ class ReactAgent:
                 logger.info(f"tool result:{result}")
 
                 messages.append(ToolMessage(content=result, tool_call_id=tool_call['id']))
-        logger.error(f"execute stream overtime.")
-        return None
+
+        logger.info("工具调用完成，开始生成最终回答...")
+        logger.info(f"当前 messages: {messages}")
+
+        async def generate():
+            final_text = self._run_middleware_after(resp.content)
+            full_answer = final_text
+            for char in full_answer:
+                # sleep(0.1)
+                yield char.encode('utf-8')
+
+            conv_service.add_message("user", query)
+            conv_service.add_message("assistant", full_answer)
+            QueryCache.set(query, answer=full_answer, sources=self.context.get('sources', []))
+
+        return generate()
 
 # if __name__ == '__main__':
 #     agent = ReactAgent()

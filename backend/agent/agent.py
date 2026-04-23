@@ -12,7 +12,6 @@ router = APIRouter(prefix='/agent', tags=['agent'])
 
 class AgentRequest(BaseModel):
     query: str
-    session_id:str
     context: Optional[Dict[str, Any]] = None
 
 class AgentResponse(BaseModel):
@@ -20,24 +19,23 @@ class AgentResponse(BaseModel):
     sources:List[str]
 
 @router.post('/chat', response_model=AgentResponse)
-async def agent_chat(req: AgentRequest):
+async def agent_chat(req: AgentRequest,session_id: str):
     cache = QueryCache.get(req.query)
     if cache:
         answer, sources = cache
         return AgentResponse(answer=answer, sources=sources)
 
-    answer, sources = run_agent(req.query,req.session_id, req.context)
+    answer, sources = run_agent(req.query,session_id, req.context)
     return AgentResponse(answer=answer, sources=sources)
 
 
 @router.post("/chat/stream")
-async def agent_chat_stream(request: AgentRequest):
+async def agent_chat_stream(request: AgentRequest, session_id:str):
     cache = QueryCache.get(request.query)
     if cache:
         answer, sources = cache
 
         async def stream_from_cache():
-            full_answer = ""
             for char in answer:
                 yield char
 
@@ -45,7 +43,7 @@ async def agent_chat_stream(request: AgentRequest):
         return StreamingResponse(stream_from_cache(), media_type="text/plain", headers=headers)
 
 
-    generate, sources = run_agent(request.query, request.session_id, None, True)
+    generator, sources = run_agent(request.query, session_id, request.context, True)
     # 将 sources 放入响应头
     headers = {"X-Sources": ",".join(sources)}
-    return StreamingResponse(generate(), media_type="text/plain", headers=headers)
+    return StreamingResponse(generator, media_type="text/plain", headers=headers)
