@@ -12,7 +12,7 @@ def _translate_text(text: str, target_lang: str = "zh")  -> str:
         return f"translate fail: {e}"
 
 ToolsRegistry.register(
-    name="translate",
+    name="translate_text",
     description="翻译文本，目标语言：zh（中文）、en（英文）、ja（日文），如 'translate_text(text=\"Hello\", target_lang=\"zh\")'",
     func=_translate_text
 )

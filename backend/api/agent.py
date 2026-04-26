@@ -17,6 +17,7 @@ class AgentRequest(BaseModel):
 class AgentResponse(BaseModel):
     answer:str
     sources:List[str]
+    tools: List[str]
 
 @router.post('/chat', response_model=AgentResponse)
 async def agent_chat(req: AgentRequest,session_id: str):
@@ -25,8 +26,8 @@ async def agent_chat(req: AgentRequest,session_id: str):
         answer, sources = cache
         return AgentResponse(answer=answer, sources=sources)
 
-    answer, sources = run_agent(req.query,session_id, req.context)
-    return AgentResponse(answer=answer, sources=sources)
+    answer, sources, all_tools = run_agent(req.query,session_id, req.context)
+    return AgentResponse(answer=answer, sources=sources, tools=all_tools)
 
 
 @router.post("/chat/stream")
@@ -43,7 +44,7 @@ async def agent_chat_stream(request: AgentRequest, session_id:str):
         return StreamingResponse(stream_from_cache(), media_type="text/plain", headers=headers)
 
 
-    generator, sources = run_agent(request.query, session_id, request.context, True)
-    # 将 sources 放入响应头
-    headers = {"X-Sources": ",".join(sources)}
+    generator, sources, all_tools = run_agent(request.query, session_id, request.context, True)
+    # 将 sources, tools 放入响应头
+    headers = {"X-Sources": ",".join(sources), "X-Tools": ",".join(all_tools)}
     return StreamingResponse(generator, media_type="text/plain", headers=headers)

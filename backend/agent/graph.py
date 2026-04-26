@@ -44,7 +44,7 @@ def get_agent() -> ReactAgent:
         _agent = create_agent()
     return _agent
 
-def run_agent(query:str,session_id: str, context: Optional[dict] = None, is_stream:bool = False) -> Tuple[Any, list]:
+def run_agent(query:str,session_id: str, context: Optional[dict] = None, is_stream:bool = False) -> Tuple[Any, list, list]:
     intent = classify_intent(query)
 
     if intent == 'CHAT':
@@ -54,21 +54,21 @@ def run_agent(query:str,session_id: str, context: Optional[dict] = None, is_stre
                 async for chunk in llm_service.stream([HumanMessage(content=query)]):
                     yield chunk.encode('utf-8')
 
-            return chat_stream(), []
+            return chat_stream(), [], []
         else:
-            return llm_service.generate(query), []
+            return llm_service.generate(query), [], []
 
     logger.info(f"intent:{intent}, run react agent.")
 
     agent = get_agent()
     if is_stream:
-        generator = agent.execute_stream(query,session_id, context)
+        generator, all_tools = agent.execute_stream(query,session_id, context)
         sources = agent.context.get('sources') or []
-        return generator, sources
+        return generator, list(set(sources)), all_tools
     else:
-        answer = agent.run(query,session_id, context)
+        answer, all_tools = agent.run(query,session_id, context)
         if not answer:
             return llm_service.generate(f"知识库中没有相关信息，请用自己的知识回答：{query}")
         sources = agent.context.get('sources') or []
 
-        return answer, sources
+        return answer, sources, all_tools

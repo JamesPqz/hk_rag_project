@@ -27,3 +27,9 @@ class QueryCache:
             "answer": answer,
             "sources":sources
         }, ttl=CACHE_TTL)
+
+    @staticmethod
+    def invalidate_by_pattern(pattern: str):
+        """批量删除缓存"""
+        redis_client.delete_pattern(pattern)
+        logger.info(f"Cache invalidated by pattern: {pattern}")

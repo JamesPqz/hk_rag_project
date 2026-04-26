@@ -10,11 +10,11 @@ class LogMiddleware:
     """日志中间件：记录请求和响应"""
 
     def before(self, query: str) -> str:
-        logger.info(f"Agent request: {query[:100]}...")
+        # logger.info(f"Agent request: {query[:10]}...")
         return query
 
     def after(self, response: str) -> str:
-        logger.info(f"Agent response: {response[:100]}...")
+        # logger.info(f"Agent response: {response[:100]}...")
         return response
 
 

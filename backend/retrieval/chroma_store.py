@@ -29,7 +29,7 @@ class ChromaVectorStore(BaseVectorStore):
         rlt = self.vector_store.similarity_search(query,k)
         return [(doc, 1.0) for doc in rlt]
 
-    def hybrid_search(self, query: str, k: Optional[int] = None, alpha: float = vector_config['hybrid']['alpha']) -> List[Tuple[Document, float]]:
+    def hybrid_search(self, query: str, k: Optional[int] = None, alpha: float = None) -> List[Tuple[Document, float]]:
         """Chroma 的混合检索实现"""
         if not self.hybrid_searcher:
             return self.similar_search_with_score(query, k)
@@ -94,6 +94,9 @@ class ChromaVectorStore(BaseVectorStore):
     def delete(self, ids: List[str]):
         self.vector_store.delete(ids)
         logger.info(f"Deleted {len(ids)} documents")
+
+    def get_all_ids(self) -> List[str]:
+        return self.vector_store.get()['ids']
 
 if __name__ == '__main__':
 

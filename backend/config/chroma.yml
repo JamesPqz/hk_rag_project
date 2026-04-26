@@ -1,4 +1,4 @@
-collection_name: agent
+collection_name: rag
 chrome_db_dir: data/chroma_db
 data_path: data/raw
 md5_hex_store: data/chroma_db/md5.txt

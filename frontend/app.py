@@ -1,13 +1,15 @@
 import os
+import time
 from time import sleep
 
 import requests
 import streamlit as st
+
 # from agent.react_agent import ReactAgent
 
-st.set_page_config(page_title='rag system', layout='wide')
+st.set_page_config(page_title='RAG 智能問答與知識庫系統', layout='wide')
 
-st.title('rag service')
+st.title('RAG 智能問答與知識庫系統')
 st.divider()
 
 with st.sidebar:
@@ -21,18 +23,53 @@ with st.sidebar:
     session_id = st.text_input('session id', value='user123')
 
     st.header('document manager')
-    upload_file = st.file_uploader('upload file', type=['docx','txt', 'md', 'csv', 'tsv'])
+
+    if 'upload_counter' not in st.session_state:
+        st.session_state.upload_counter = 0
+
+    upload_file = st.file_uploader('upload file', type=['docx', 'txt', 'md', 'csv', 'tsv'],
+                                   key=f'uploader_{st.session_state.upload_counter}')
     if upload_file and st.button('upload'):
         files = {"file": upload_file}
         try:
-            resp = requests.post(f"{api_url}/documents/upload", files= files)
-            if resp.status_code == 200:
+            resp = requests.post(f"{api_url}/documents/upload", files=files)
+            if resp.json()['status'] == 200:
                 st.success(f"upload success:{resp.json()['filename']}")
             else:
-                st.error(f"upload fail:{resp.text}")
+                st.error(f"upload fail:{resp.json()['message']}")
+            st.session_state.upload_counter += 1
+            time.sleep(2)
+            st.rerun()
         except Exception as e:
             st.error(f"connect error:{e}")
 
+    st.header('settings')
+    use_stream = st.checkbox('Enable Stream', value=True)
+
+    if st.button('Clear History Cache', use_container_width=True):
+        try:
+            resp = requests.delete(f"{api_url}/admin/cache")
+            if resp.status_code == 200:
+                st.toast("缓存已清除")
+            else:
+                st.error(f"清除失败: {resp.text}")
+        except Exception as e:
+            st.error(f"连接失败: {e}")
+
+        # 清空 MD5 按钮
+    if st.button('Clear MD5', use_container_width=True):
+        try:
+            resp = requests.delete(f"{api_url}/admin/md5")
+            if resp.status_code == 200:
+                st.toast("MD5记录已清空")
+            else:
+                st.error(f"清空失败: {resp.text}")
+        except Exception as e:
+            st.error(f"连接失败: {e}")
+
+    if st.button('New Dialogue', use_container_width=True):
+        st.session_state.messages = []
+        st.rerun()
 
 # if 'agent' not in st.session_state:
 #     st.session_state['agent'] = ReactAgent()
@@ -43,7 +80,9 @@ if 'messages' not in st.session_state:
 for msg in st.session_state['messages']:
     st.chat_message(msg['role']).write(msg['content'])
     if "sources" in msg and msg["sources"]:
-        st.caption(f"来源：{', '.join(msg['sources'])}")
+        st.caption(f"sources：{', '.join(msg['sources'])}")
+    if "tools" in msg and msg["tools"]:
+        st.caption(f"tools：{', '.join(msg['tools'])}")
 
 prompt = st.chat_input()
 
@@ -55,53 +94,61 @@ if prompt:
     with st.spinner('ai thinking'):
         # res_stream = st.session_state['agent'].execute_stream(prompt)
         try:
-            resp = requests.post(
-                # f"{api_url}/chat/ask",
-                # f"{api_url}/chat/ask/stream",
-                f"{api_url}/agent/chat/stream",
-                params={"session_id": session_id},
-                json={"query": prompt, "k": 4},
-                stream=True
-            )
-            if resp.status_code == 200:
-                # 直接输出
-                # data = resp.json()
-                # answer = data["answer"]
-                # sources = data.get("sources", [])
-                # st.chat_message('assistant').write_stream(answer)
-                # if sources:
-                #     st.caption(f"来源：{', '.join(sources)}")
-                # st.session_state.messages.append({
-                #     "role": "assistant",
-                #     "content": answer,
-                #     "sources": sources
-                # })
+            if use_stream:
+                resp = requests.post(
+                    # f"{api_url}/chat/ask",
+                    # f"{api_url}/chat/ask/stream",
+                    f"{api_url}/agent/chat/stream",
+                    params={"session_id": session_id},
+                    json={"query": prompt, "k": 4},
+                    stream=True
+                )
+                if resp.status_code == 200:
+                    # 流输出
+                    answer = st.chat_message('assistant').write_stream(
+                        resp.iter_content(chunk_size=128, decode_unicode=True)
+                    )
 
-                #流输出
-                # full_answer = ""
-                # placeholder = st.empty()
-                # for chunk in resp.iter_content(chunk_size=None, decode_unicode=True):
-                #     if chunk:
-                #         full_answer += chunk
-                #         placeholder.markdown(full_answer + "▌")
-                # placeholder.markdown(full_answer)
+                    # 从响应头获取 sources,tools
+                    sources_header = resp.headers.get("X-Sources", "")
+                    sources = sources_header.split(",") if sources_header else []
+                    tools_header = resp.headers.get("X-Tools", "")
+                    tools = tools_header.split(",") if tools_header else []
 
-                answer = st.chat_message('assistant').write_stream(resp.iter_content(chunk_size=128, decode_unicode=True))
-
-                # 从响应头获取 sources
-                sources_header = resp.headers.get("X-Sources", "")
-                sources = sources_header.split(",") if sources_header else []
-
-                if sources:
-                    st.caption(f"来源：{', '.join(sources)}")
-                st.session_state.messages.append({
-                    "role": "assistant",
-                    "content": answer,
-                    "sources": sources
-                })
-
+                    if sources:
+                        st.caption(f"sources：{', '.join(sources)}")
+                    if tools:
+                        st.caption(f"tools：{', '.join(tools)}")
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": answer,
+                        "sources": sources,
+                        "tools": tools
+                    })
+                else:
+                    st.error(f"request fail：{resp.text}")
             else:
-                st.error(f"request fail：{resp.text}")
+                resp = requests.post(
+                    f"{api_url}/agent/chat",
+                    params={"session_id": session_id},
+                    json={"query": prompt, "k": 4},
+                    stream=True
+                )
+                if resp.status_code == 200:
+                    # 直接输出
+                    data = resp.json()
+                    answer = data["answer"]
+                    sources = data.get("sources", [])
+                    st.chat_message('assistant').write(answer)
+                    if sources:
+                        st.caption(f"来源：{', '.join(sources)}")
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "content": answer,
+                        "sources": sources
+                    })
+                else:
+                    st.error(f"request fail：{resp.text}")
         except Exception as e:
             st.error(f"connect fail:{e}")
 

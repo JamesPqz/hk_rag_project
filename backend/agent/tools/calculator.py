@@ -16,7 +16,7 @@ def _calculate(expression:str)-> str:
         return f"calculate error: {str(e)}"
 
 ToolsRegistry.register(
-    name="calculator",
+    name="calculate",
     description="计算数学表达式，如 '100*50/2' 或 '(10+5)*3'",
     func=_calculate
 )

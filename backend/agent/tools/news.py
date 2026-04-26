@@ -28,7 +28,7 @@ def _get_news(topic: str = "technology", limit: int = 3) -> str:
 
 
 ToolsRegistry.register(
-    name="news",
+    name="get_news",
     description="获取新闻头条，topic: technology（科技）/ business（商业）/ science（科学）",
     func=_get_news
 )

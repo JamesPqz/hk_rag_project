@@ -1,3 +1,4 @@
+import json
 from time import sleep
 from typing import List, Optional, Any, Dict
 
@@ -84,6 +85,7 @@ class ReactAgent:
         ]
 
         model_with_tools = self.model.bind_tools(list(self.tools.values()))
+        all_used_tools = []
 
         resp = ""
         for i in range(self.max_iterations):
@@ -93,6 +95,7 @@ class ReactAgent:
             if not resp.tool_calls:
                 break
 
+            all_used_tools.append(json.dumps(resp.tool_calls))
             for tool_call in resp.tool_calls:
                 tool_name = tool_call['name']
                 tool_input = tool_call['args']
@@ -104,7 +107,7 @@ class ReactAgent:
                 messages.append(ToolMessage(content=result, tool_call_id=tool_call['id']))
 
         answer = self._run_middleware_after(resp.content)
-        return answer
+        return answer, all_used_tools
 
     def execute_stream(self, query: str, session_id: str = 'default', context: Optional[dict] = None):
         if context is None:
@@ -123,38 +126,55 @@ class ReactAgent:
         model_with_tools = self.model.bind_tools(list(self.tools.values()))
         conv_service = ConversationService(session_id)
 
+        all_used_tools = []
+
         for i in range(self.max_iterations):
             resp = model_with_tools.invoke(messages)
             messages.append(resp)
+            print(f"[interation {i}] tools:{resp.tool_calls}")
 
             if not resp.tool_calls:
                 break
 
+            all_used_tools.append(json.dumps(resp.tool_calls))
             for tool_call in resp.tool_calls:
                 tool_name = tool_call['name']
                 tool_input = tool_call['args']
 
                 logger.info(f"call tool:{tool_name}, input: {tool_input}")
                 result = self._execute_tool(tool_name, tool_input)
-                logger.info(f"tool result:{result}")
+                logger.info(f"tool result:{result[:30]}...")
 
                 messages.append(ToolMessage(content=result, tool_call_id=tool_call['id']))
 
         logger.info("工具调用完成，开始生成最终回答...")
-        logger.info(f"当前 messages: {messages}")
+        # logger.info(f"当前 messages: {messages}")
 
         async def generate():
             final_text = self._run_middleware_after(resp.content)
-            full_answer = final_text
-            for char in full_answer:
-                # sleep(0.1)
-                yield char.encode('utf-8')
+
+            summarize_template = load_rag_summarize_prompt()
+
+            final_prompt = summarize_template.format(
+                input=query,
+                context=final_text
+            )
+            final_messages = [
+                SystemMessage(content=final_prompt),
+                HumanMessage(content=query)
+            ]
+
+            full_answer = ""
+            async for chunk in self.model.astream(final_messages):
+                if chunk.content:
+                    full_answer += chunk.content
+                    yield chunk.content.encode('utf-8')
 
             conv_service.add_message("user", query)
             conv_service.add_message("assistant", full_answer)
             QueryCache.set(query, answer=full_answer, sources=self.context.get('sources', []))
 
-        return generate()
+        return generate(), all_used_tools
 
 # if __name__ == '__main__':
 #     agent = ReactAgent()

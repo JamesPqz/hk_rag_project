@@ -26,12 +26,12 @@ class Reranker:
         pairs = [[query, doc.page_content] for doc,_ in docs]
         scores = self.model.predict(pairs)
 
-        reranker = [(doc, float(score)) for (doc, _), score in zip(docs, scores)]
-        reranker.sort(key=lambda x:x[1], reverse=True)
+        reranked = [(doc, float(score)) for (doc, _), score in zip(docs, scores) if score >= cfg['similarity_threshold']]
+        reranked.sort(key=lambda x:x[1], reverse=True)
 
         logger.info(f"rerank success.return {top_k} results.")
 
-        return reranker[:top_k]
+        return reranked[:top_k]
 
 if __name__ == '__main__':
 

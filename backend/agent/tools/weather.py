@@ -15,7 +15,7 @@ def _get_weather(city: str) -> str:
         return f"unknown error：{e}"
 
 ToolsRegistry.register(
-    name="weather",
+    name="get_weather",
     description="查询城市天气，如 '香港'、'深圳'、'London'",
     func=_get_weather
 )

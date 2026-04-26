@@ -3,8 +3,12 @@ from pathlib import Path
 from fastapi import APIRouter, UploadFile, File
 from langgraph_sdk.auth.exceptions import HTTPException
 
+from backend.retrieval.vector_factory import get_vector_store
+from backend.services.query_cache import QueryCache
 from backend.utils.config_handler import chroma_config
 from backend.utils.file_handler import get_file_docs, get_file_md5_hex
+from backend.utils.md5_handler import save_md5, check_md5_hex
+from backend.utils.logger_handler import logger
 
 router = APIRouter(prefix='/documents', tags=['documents'])
 UPLOAD_PATH = Path("backend/data/upload")
@@ -25,9 +29,27 @@ async def upload_document(file:UploadFile = File(...)):
     docs = get_file_docs(str(file_path))
     md5 = get_file_md5_hex(str(file_path))
 
+    if check_md5_hex(md5):
+        logger.info(f"File {file.filename} already exists, skipping.")
+        return {
+            "status": 400,
+            "message": "file already exists, skip indexing",
+            "filename": file.filename,
+            "md5": md5
+        }
+
+    vs = get_vector_store()
+    vs.add_documents(docs)
+
+    save_md5(md5)
+
+    QueryCache.invalidate_by_pattern("qa:*")
+
+    logger.info(f"File {file.filename} uploaded and indexed, segments: {len(docs)}")
+
     return {
         "status": 200,
-        "message": "uploaded",
+        "message": "uploaded success",
         "filename": file.filename,
         "md5": md5,
         "segments": len(docs),

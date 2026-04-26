@@ -56,6 +56,7 @@ class RetrievalService:
                 sources.append(source)
 
         logger.info(f"retrieve {len(result)} infos for query: {query[:50]}")
+        print('='*30)
 
         return {
             "context": "\n\n".join(context_parts),

@@ -4,7 +4,7 @@ from rank_bm25 import BM25Okapi
 
 from langchain_core.documents import Document
 
-from backend.utils.config_handler import chroma_config as cfg
+from backend.utils.config_handler import chroma_config as cfg, vector_config
 from backend.utils.logger_handler import logger
 
 class HybridSearch:
@@ -22,7 +22,7 @@ class HybridSearch:
         self.bm25 = BM25Okapi(tokenized_docs)
         logger.info(f"build bm25 index,doc size:{len(documents)}")
 
-    def search(self,query:str, k:int = cfg['top_k']) -> List[Tuple[Document, float]]:
+    def search(self,query:str, k:int = cfg['top_k'], alpha = vector_config['hybrid']['alpha']) -> List[Tuple[Document, float]]:
         vector_rlt = self.vector_store.similar_search_with_score(query,k*2)
 
         tokenized_query = list(jieba.cut(query))
@@ -33,7 +33,7 @@ class HybridSearch:
 
         combined = {}
         for doc,score in vector_rlt:
-            combined[doc.page_content] = combined.get(doc.page_content, 0) + 0.6 * (1 - score)
+            combined[doc.page_content] = combined.get(doc.page_content, 0) + alpha * (1 - score)
 
         max_score = max(bm25_score)
         min_score = min(bm25_score)
@@ -44,7 +44,7 @@ class HybridSearch:
                 score = (bm25_score[idx] - min_score) / (max_score - min_score)
             else:
                 score = 0
-            combined[doc.page_content] = combined.get(doc.page_content, 0) + 0.4 * score
+            combined[doc.page_content] = combined.get(doc.page_content, 0) + (1-alpha) * score
 
         sort_rlt = sorted(combined.items(), key=lambda x:x[1], reverse=True)[:k]
 

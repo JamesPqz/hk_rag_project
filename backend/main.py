@@ -2,8 +2,7 @@ import logging
 
 from fastapi import FastAPI,Request
 
-from backend.agent import agent
-from backend.api import documents, chat
+from backend.api import documents, chat, admin, agent
 from backend.api import health
 
 app = FastAPI()
@@ -12,6 +11,7 @@ app.include_router(documents.router)
 app.include_router(chat.router)
 app.include_router(health.router)
 app.include_router(agent.router)
+app.include_router(admin.router)
 
 
 @app.middleware("http")
