@@ -76,12 +76,21 @@ class ReactAgent:
 
         self.context = context
 
+        conv_service = ConversationService(session_id)
+        history = conv_service.get_history()
+
+        history_msg = "chat history:\n" + "\n".join(
+            [f"'role': {his['role']}, 'content':{his['content']}" for his in history])
+
+        rewrite_prompt = f"根据历史聊天记录：{history_msg}, 把以下问题改写成更清晰的检索查询：{query}"
+        new_query = llm_service.generate(rewrite_prompt)
+
         prompt_name, prompt_content = self._run_middleware_before(query)
         system_prompt = prompt_content or self._get_prompt_by_name(prompt_name)
 
         messages = [
             SystemMessage(content=system_prompt),
-            HumanMessage(content=query)
+            HumanMessage(content=new_query)
         ]
 
         model_with_tools = self.model.bind_tools(list(self.tools.values()))
@@ -118,19 +127,20 @@ class ReactAgent:
         conv_service = ConversationService(session_id)
         history = conv_service.get_history()
 
+        history_msg = "chat history:\n" + "\n".join(
+            [f"'role': {his['role']}, 'content':{his['content']}" for his in history])
+
+        rewrite_prompt = f"根据对话历史：{history_msg}，把用户问题中的代词替换为具体名词，生成独立完整的查询。只输出查询结果。\n用户问题：{query}\n独立查询："
+        new_query = llm_service.generate(rewrite_prompt)
+        logger.info(f"rewrite_prompt：{rewrite_prompt}，new query:{new_query}")
+
         prompt_name, prompt_content = self._run_middleware_before(query)
         system_prompt = prompt_content or self._get_prompt_by_name(prompt_name)
 
         messages = [
             SystemMessage(content=system_prompt),
+            HumanMessage(content=new_query)
         ]
-        for msg in history[-6:]:  # 最近6轮
-            if msg['role'] == 'user':
-                messages.append(HumanMessage(content=msg['content']))
-            else:
-                messages.append(AIMessage(content=msg['content']))
-
-        messages.append(HumanMessage(content=query))
 
         model_with_tools = self.model.bind_tools(list(self.tools.values()))
         conv_service = ConversationService(session_id)
