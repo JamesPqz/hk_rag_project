@@ -4,3 +4,6 @@ __pycache__/
 .env
 data/raw/*.pdf
 logs/
+rag.tar.gz
+backend/data/chroma_db/*.db
+backend/cache/huggingface/

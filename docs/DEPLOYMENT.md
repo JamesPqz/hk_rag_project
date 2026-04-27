@@ -63,8 +63,26 @@ tar --exclude='.venv' \
     --exclude='.idea' \
     --exclude='.DS_Store' \
     --exclude='rag.tar.gz' \
+    --exclude='backend/cache/huggingface' \
     -czf rag.tar.gz .
 scp rag.tar.gz root@47.83.204.214:/root/
+
+# 增量部署
+rsync -avz --delete \
+  --exclude='.venv' \
+  --exclude='backend/data/chroma_db' \
+  --exclude='backend/logs' \
+  --exclude='__pycache__' \
+  --exclude='*.pyc' \
+  --exclude='.env' \
+  --exclude='.git' \
+  --exclude='.idea' \
+  --exclude='.DS_Store' \
+  --exclude='rag.tar.gz' \
+  --exclude='backend/cache/huggingface' \
+  ./ root@47.83.204.214:/root/hk_rag_project/
+
+ssh root@47.83.204.214 "cd /root/hk_rag_project && docker compose restart backend"
 
 # 服务器解压
 cd /root

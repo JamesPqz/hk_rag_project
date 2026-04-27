@@ -8,7 +8,7 @@ from backend.models.factory import embedding_model
 from backend.loaders.document_loader import doc_loader
 from backend.retrieval.base_store import BaseVectorStore
 from backend.retrieval.hybrid_search import HybridSearch
-from backend.utils.config_handler import chroma_config as cfg, chroma_config, vector_config
+from backend.utils.config_handler import chroma_config as cfg
 from backend.utils.file_handler import list_dir_with_allowed_type, get_file_md5_hex
 from backend.utils.md5_handler import check_md5_hex, save_md5
 from backend.utils.path_tool import get_abs_path
@@ -17,7 +17,7 @@ from backend.utils.logger_handler import logger
 
 class ChromaVectorStore(BaseVectorStore):
     def __init__(self, persist_dir:Optional[str] = None):
-        super().__init__(chroma_config)
+        super().__init__(cfg)
         self.persist_dir = get_abs_path(persist_dir or cfg['chrome_db_dir'])
         os.makedirs(self.persist_dir, exist_ok=True)
         self.embeddings = embedding_model

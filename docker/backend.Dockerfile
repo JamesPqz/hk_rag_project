@@ -10,8 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend /app/backend
 
-ENV HF_ENDPOINT=https://hf-mirror.com
-RUN python -c "from sentence_transformers import CrossEncoder; CrossEncoder('BAAI/bge-reranker-base')"
+COPY backend/cache/huggingface /root/.cache/huggingface
 
 EXPOSE 8000
 

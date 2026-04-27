@@ -7,6 +7,10 @@ from backend.utils.config_handler import chroma_config as cfg
 
 from backend.utils.logger_handler import logger
 
+import os
+os.environ['HF_HUB_OFFLINE'] = '1'  # 强制离线
+os.environ['TRANSFORMERS_OFFLINE'] = '1'
+
 class Reranker:
     _instance = None
     _model = None  # 共享模型实例
@@ -19,14 +23,17 @@ class Reranker:
     def __init__(self):
         if torch.backends.mps.is_available():
             device = "mps"
+        elif torch.cuda.is_available():
+            device = "cuda"
         else:
             device = "cpu"
 
-        if self.model is not None:
+        if self._model is not None:
             return
-        self.model = CrossEncoder(
+        self._model = CrossEncoder(
             'BAAI/bge-reranker-base',
-            device=device
+            device=device,
+            local_files_only=True
         )
 
     def rerank(self, query:str, docs:List[Tuple[Document, float]], top_k:int = cfg['top_k']) -> List[Tuple[Document, float]]:
@@ -34,7 +41,7 @@ class Reranker:
             return []
 
         pairs = [[query, doc.page_content] for doc,_ in docs]
-        scores = self.model.predict(pairs)
+        scores = self._model.predict(pairs)
 
         reranked = [(doc, float(score)) for (doc, _), score in zip(docs, scores) if score >= cfg['similarity_threshold']]
         reranked.sort(key=lambda x:x[1], reverse=True)

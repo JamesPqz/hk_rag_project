@@ -115,13 +115,22 @@ class ReactAgent:
 
         self.context = context
 
+        conv_service = ConversationService(session_id)
+        history = conv_service.get_history()
+
         prompt_name, prompt_content = self._run_middleware_before(query)
         system_prompt = prompt_content or self._get_prompt_by_name(prompt_name)
 
         messages = [
             SystemMessage(content=system_prompt),
-            HumanMessage(content=query)
         ]
+        for msg in history[-6:]:  # 最近6轮
+            if msg['role'] == 'user':
+                messages.append(HumanMessage(content=msg['content']))
+            else:
+                messages.append(AIMessage(content=msg['content']))
+
+        messages.append(HumanMessage(content=query))
 
         model_with_tools = self.model.bind_tools(list(self.tools.values()))
         conv_service = ConversationService(session_id)
