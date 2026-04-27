@@ -52,7 +52,8 @@ systemctl enable docker
 ### 3.3 上传项目代码
 \`\`\`bash
 # 本地打包
-tar --exclude='.venv' --exclude='__pycache__' -czf rag.tar.gz .
+rm -f rag.tar.gz
+tar --exclude='.venv' --exclude='backend/data/chroma_db' --exclude='backend/logs' --exclude='__pycache__' --exclude='.env' -czf rag.tar.gz .
 scp rag.tar.gz root@47.83.204.214:/root/
 
 # 服务器解压
