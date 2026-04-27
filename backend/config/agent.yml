@@ -1,5 +1,5 @@
 # Agent 配置
-model: qwen-plus
+model: qwen-flash
 temperature: 0.3
 max_iterations: 5
 

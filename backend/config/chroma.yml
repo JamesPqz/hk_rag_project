@@ -1,7 +1,7 @@
 collection_name: rag
 chrome_db_dir: data/chroma_db
 data_path: data/raw
-md5_hex_store: data/chroma_db/md5.txt
+md5_hex_store: data/md5.txt
 allow_types: ['txt', 'pdf', 'csv', 'tsv', '.md', '.markdown']
 
 chunk_size: 500

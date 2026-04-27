@@ -39,7 +39,7 @@
 
 ### 3.1 连接服务器
 \`\`\`bash
-ssh root@http://47.83.204.214
+ssh root@47.83.204.214
 \`\`\`
 
 ### 3.2 安装 Docker
@@ -53,7 +53,7 @@ systemctl enable docker
 \`\`\`bash
 # 本地打包
 tar --exclude='.venv' --exclude='__pycache__' -czf rag.tar.gz .
-scp rag.tar.gz root@<公网IP>:/root/
+scp rag.tar.gz root@47.83.204.214:/root/
 
 # 服务器解压
 cd /root
