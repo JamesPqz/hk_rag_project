@@ -53,11 +53,22 @@ systemctl enable docker
 \`\`\`bash
 # 本地打包
 rm -f rag.tar.gz
-tar --exclude='.venv' --exclude='backend/data/chroma_db' --exclude='backend/logs' --exclude='__pycache__' --exclude='.env' -czf rag.tar.gz .
+tar --exclude='.venv' \
+    --exclude='backend/data/chroma_db' \
+    --exclude='backend/logs' \
+    --exclude='__pycache__' \
+    --exclude='*.pyc' \
+    --exclude='.env' \
+    --exclude='.git' \
+    --exclude='.idea' \
+    --exclude='.DS_Store' \
+    --exclude='rag.tar.gz' \
+    -czf rag.tar.gz .
 scp rag.tar.gz root@47.83.204.214:/root/
 
 # 服务器解压
 cd /root
+rm -rf backend frontend docker nginx
 tar -xzf rag.tar.gz
 \`\`\`
 

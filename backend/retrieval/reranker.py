@@ -8,12 +8,22 @@ from backend.utils.config_handler import chroma_config as cfg
 from backend.utils.logger_handler import logger
 
 class Reranker:
+    _instance = None
+    _model = None  # 共享模型实例
+
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
     def __init__(self):
         if torch.backends.mps.is_available():
             device = "mps"
         else:
             device = "cpu"
 
+        if self.model is not None:
+            return
         self.model = CrossEncoder(
             'BAAI/bge-reranker-base',
             device=device

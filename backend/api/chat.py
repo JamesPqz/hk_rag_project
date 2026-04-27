@@ -4,14 +4,11 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from backend.retrieval.reranker import Reranker
-from backend.retrieval.vector_factory import get_vector_store
 from backend.services.conversation_service import ConversationService
 from backend.services.llm_service import LLM_Service
 from backend.services.query_cache import QueryCache
 from backend.services.retrieval_service import RetrievalService
 from backend.utils.prompts_loader import load_sys_prompt
-from backend.utils.config_handler import chroma_config
 
 router = APIRouter(prefix='/chat', tags=['chat'])
 
