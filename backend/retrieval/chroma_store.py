@@ -1,3 +1,4 @@
+import os
 from typing import List, Optional, Tuple
 
 from langchain_community.vectorstores import Chroma
@@ -18,6 +19,7 @@ class ChromaVectorStore(BaseVectorStore):
     def __init__(self, persist_dir:Optional[str] = None):
         super().__init__(chroma_config)
         self.persist_dir = get_abs_path(persist_dir or cfg['chrome_db_dir'])
+        os.makedirs(self.persist_dir, exist_ok=True)
         self.embeddings = embedding_model
         self.vector_store:Optional[Chroma] = None
         self.hybrid_searcher = None
