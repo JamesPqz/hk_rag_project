@@ -1,4 +1,4 @@
-active: qdrant  #milvus   或 pgvector 或 chromadb
+active: chromadb #qdrant  #milvus   或 pgvector 或 chromadb
 
 chromadb:
   config_path: config/chroma.yml

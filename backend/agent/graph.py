@@ -15,9 +15,9 @@ from backend.utils.prompts_loader import load_react_system_prompt, load_boundari
 
 def load_react_prompt() -> str:
     template = load_react_system_prompt();
-    tools_desc = '\n'.join([f"- {tool.name} : {tool.description}" for tool in ToolsRegistry.get_all_tools()])
+    # tools_desc = '\n'.join([f"- {tool.name} : {tool.description}" for tool in ToolsRegistry.get_all_tools()])
     boundaries = load_boundaries()
-    return template.format(available_tools=tools_desc, boundaries=boundaries)
+    return template.format(boundaries=boundaries)
 
 def create_agent():
     llm = chat_model

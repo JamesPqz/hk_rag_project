@@ -7,7 +7,7 @@ def _get_current_time()-> str:
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
 ToolsRegistry.register(
-    name='time',
+    name='get_current_time',
     description="获取当前日期和时间，不需要参数",
     func=_get_current_time
 )
