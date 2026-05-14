@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from backend.retrieval.vector_factory import get_vector_store
 from backend.services.query_cache import QueryCache
+from backend.utils.config_handler import vector_config
 from backend.utils.logger_handler import logger
 from backend.utils.md5_handler import clear_md5_records
 
@@ -20,26 +21,38 @@ async def clear_cache():
 
 @router.delete('/md5')
 async def clear_md5():
+    active = vector_config.get('active', 'chromadb')
     """清空 MD5 记录文件"""
     try:
-        # 1. 清空向量库
         vs = get_vector_store()
+        if active == 'chromadb':
+            if hasattr(vs, 'collection'):
+                all_ids = vs.collection.get()['ids']
+                if all_ids:
+                    vs.delete(all_ids)
+                    logger.info(f"Deleted {len(all_ids)} vectors from Chroma")
 
-        if hasattr(vs, 'get_all_ids'):
-            all_ids = vs.get_all_ids()
-        elif hasattr(vs, 'collection'):
-            # Chroma 方式
-            all_ids = vs.collection.get()['ids']
-        else:
-            # pgvector 方式：查询所有 id
+        elif active == 'pgvector':
             from ..db.session import SessionLocal
             from ..db.schema import DocumentVector
             with SessionLocal() as session:
-                all_ids = [str(row[0]) for row in session.query(DocumentVector.id).all()]
+                results = session.query(DocumentVector.id).all()
+                all_ids = [row[0] for row in results]
+                if all_ids:
+                    session.query(DocumentVector).filter(DocumentVector.id.in_(all_ids)).delete()
+                    session.commit()
+                    logger.info(f"Deleted {len(all_ids)} vectors from pgvector")
 
-        if all_ids:
-            vs.delete(all_ids)
-            logger.info(f"Deleted {len(all_ids)} vectors from vector store")
+        elif active == 'milvus':
+            if hasattr(vs, 'collection'):
+                vs.collection.delete(expr="id >= 0")
+                logger.info("Cleared Milvus collection")
+
+        elif active == 'qdrant':
+            if hasattr(vs, 'client') and hasattr(vs, 'collection_name'):
+                vs.client.delete_collection(vs.collection_name)
+                vs._create_collection()
+                logger.info("Cleared Qdrant collection")
 
         clear_md5_records()
         logger.info("MD5 records cleared by admin request")

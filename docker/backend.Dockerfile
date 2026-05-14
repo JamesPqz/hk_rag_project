@@ -10,7 +10,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend /app/backend
 
-COPY backend/cache/huggingface /root/.cache/huggingface
+# COPY backend/cache/huggingface /root/.cache/huggingface
 
 EXPOSE 8000
 

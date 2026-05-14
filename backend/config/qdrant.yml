@@ -1,0 +1,5 @@
+host: ${QDRANT_HOST:-localhost}
+port: ${QDRANT_PORT:-6333}
+api_key: ${QDRANT_API_KEY:-}
+collection_name: rag
+vector_size: 1536

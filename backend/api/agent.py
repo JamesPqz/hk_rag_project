@@ -44,6 +44,7 @@ async def agent_chat_stream(request: AgentRequest, session_id:str):
         return StreamingResponse(stream_from_cache(), media_type="text/plain", headers=headers)
 
     generator, sources, all_tools = run_agent(request.query, session_id, request.context, True)
+
     # 将 sources, tools 放入响应头
     headers = {"X-Sources": ",".join(sources), "X-Tools": ",".join(all_tools)}
     return StreamingResponse(generator, media_type="text/plain", headers=headers)

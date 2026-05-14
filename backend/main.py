@@ -4,6 +4,7 @@ from fastapi import FastAPI,Request
 
 from backend.api import documents, chat, admin, agent
 from backend.api import health
+from backend.db.milvus_client import milvus_client
 
 app = FastAPI()
 
@@ -13,6 +14,9 @@ app.include_router(health.router)
 app.include_router(agent.router)
 app.include_router(admin.router)
 
+@app.on_event("startup")
+async def startup_event():
+    _ = milvus_client  # 触发连接
 
 @app.middleware("http")
 async def log_middleware(request: Request, call_next):

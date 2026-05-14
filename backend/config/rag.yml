@@ -1,5 +1,5 @@
-chat_model: qwen-turbo
-embedding_model: text-embedding-v4
+chat_model: qwen-flash
+embedding_model: text-embedding-v3
 
 temperature: 0.3
 api_key: DASHSCOPE_API_KEY

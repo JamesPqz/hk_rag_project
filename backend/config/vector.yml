@@ -1,10 +1,16 @@
-active: chromadb  # 或 pgvector
+active: qdrant  #milvus   或 pgvector 或 chromadb
 
 chromadb:
   config_path: config/chroma.yml
 
 pgvector:
   config_path: config/pgvector.yml
+
+milvus:
+  uri: ${ZILLIZ_URI}
+  token: ${ZILLIZ_TOKEN}
+  collection_name: "rag"
+  dimension: 1536
 
 hybrid:
   alpha: 0.6

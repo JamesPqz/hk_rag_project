@@ -27,7 +27,6 @@ def load_config(cfg_path:str, encoding='utf-8'):
     with open(get_abs_path(cfg_path), encoding=encoding) as f:
         content = f.read()
 
-    # 核心修复：支持 ${VAR:-default} 格式的环境变量替换
     def replace_env(match):
         expr = match.group(1)
         # 拆分变量名和默认值（匹配 :- 分隔）
